@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">CryptoMaster</string>
+    <string name="format_price" formatted="false">$%.5f</string>
 </resources>
