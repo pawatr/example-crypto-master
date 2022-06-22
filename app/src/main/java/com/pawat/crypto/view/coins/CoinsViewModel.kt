@@ -1,4 +1,4 @@
-package com.pawat.crypto.view
+package com.pawat.crypto.view.coins
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData

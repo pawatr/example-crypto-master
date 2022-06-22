@@ -17,7 +17,7 @@
         android:theme="@style/Theme.CryptoMaster"
         tools:targetApi="31">
         <activity
-            android:name=".view.CoinsActivity"
+            android:name=".view.coins.CoinsActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

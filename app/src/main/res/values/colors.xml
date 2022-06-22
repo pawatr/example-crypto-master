@@ -13,4 +13,6 @@
     <color name="text_secondary">#999999</color>
     <color name="green">#13BC24</color>
     <color name="red">#F82D2D</color>
+    <color name="transparent">#00ffffff</color>
+    <color name="button_primary">#38A0FF</color>
 </resources>

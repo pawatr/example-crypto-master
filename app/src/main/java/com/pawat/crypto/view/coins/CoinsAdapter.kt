@@ -1,4 +1,4 @@
-package com.pawat.crypto.view
+package com.pawat.crypto.view.coins
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.pawat.crypto.R
 import com.pawat.crypto.data.model.Coin
 import com.pawat.crypto.extension.setImageUrl
+import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
 import kotlinx.android.synthetic.main.coin_list_item.view.*
 
 class CoinsAdapter: RecyclerView.Adapter<CoinsAdapter.CoinsViewHolder>() {
@@ -15,6 +16,12 @@ class CoinsAdapter: RecyclerView.Adapter<CoinsAdapter.CoinsViewHolder>() {
     set(value) {
         field = value
         notifyDataSetChanged()
+    }
+
+    private var listener: CoinsAdapterListener? = null
+
+    fun setListener(listener: CoinsAdapterListener) {
+        this.listener = listener
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CoinsViewHolder {
@@ -44,6 +51,9 @@ class CoinsAdapter: RecyclerView.Adapter<CoinsAdapter.CoinsViewHolder>() {
                 itemView.arrowChange.setImageDrawable(itemView.context.getDrawable(R.drawable.ic_arrow_up))
             }
             itemView.coinChangeItemTv.text = coin.change
+            itemView.setOnClickListener {
+                listener?.onCoinClickListener(coin)
+            }
         }
     }
 }
