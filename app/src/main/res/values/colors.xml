@@ -16,4 +16,5 @@
     <color name="transparent">#00ffffff</color>
     <color name="button_primary">#38A0FF</color>
     <color name="light_grey">#EEEEEE</color>
+    <color name="bg_invite">#C5E6FF</color>
 </resources>

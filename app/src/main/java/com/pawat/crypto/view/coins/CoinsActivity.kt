@@ -124,7 +124,19 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         loading.visibility = View.GONE
         errorLayout.visibility = View.GONE
         layoutNotFound.visibility = View.GONE
-        coinsAdapter.coins = coins
+        val items: ArrayList<Any> = arrayListOf()
+        var inviteIndex = 5
+        var i = 1
+        while (i <= coins.size) {
+            if (i == inviteIndex){
+                items.add(getString(R.string.invite_friend))
+                inviteIndex *= 2
+            } else {
+                items.add(coins[i-1])
+            }
+            ++i
+        }
+        coinsAdapter.items = items
     }
 
     //region {@link CoinsAdapterListener}
