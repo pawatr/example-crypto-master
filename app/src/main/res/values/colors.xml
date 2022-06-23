@@ -15,4 +15,5 @@
     <color name="red">#F82D2D</color>
     <color name="transparent">#00ffffff</color>
     <color name="button_primary">#38A0FF</color>
+    <color name="light_grey">#EEEEEE</color>
 </resources>

@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.Gravity
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,13 +15,15 @@ import com.pawat.crypto.data.model.Coin
 import com.pawat.crypto.data.remote.Err
 import com.pawat.crypto.data.remote.Loading
 import com.pawat.crypto.data.remote.Ok
+import com.pawat.crypto.extension.hideKeyboard
 import com.pawat.crypto.view.coin.CoinDetailBottomSheet
 import com.pawat.crypto.view.coin.CoinDetailViewModel
 import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
 import kotlinx.android.synthetic.main.activity_coins.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.*
 
-class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
+class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener {
 
     private val coinsViewModel: CoinsViewModel by viewModel()
     private val coinDetailViewModel: CoinDetailViewModel by viewModel()
@@ -33,7 +36,8 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
         const val TAG_BOTTOM_SHEET_FRAGMENT = "CoinDetailBottomSheet"
     }
 
-    var coins: ArrayList<Coin> = arrayListOf()
+    private var coins: ArrayList<Coin> = arrayListOf()
+    private var timer: Timer = Timer()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -94,6 +98,35 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
         }
     }
 
+    override fun onQueryTextSubmit(query: String?): Boolean {
+        query?.let {
+            if (query.trim().isEmpty()){
+                hideKeyboard()
+            } else {
+                getSearchCoin(query)
+            }
+        }
+        return false
+    }
+
+    override fun onQueryTextChange(newText: String?): Boolean {
+        timer.cancel()
+        timer = Timer()
+        val sleep = 500L
+        timer.schedule(object : TimerTask() {
+            override fun run() {
+                newText?.let {
+                    if (newText.trim().isEmpty()){
+                        hideKeyboard()
+                    } else {
+                        getSearchCoin(newText)
+                    }
+                }
+            }
+        }, sleep)
+        return false
+    }
+
     override fun onBackPressed() {
         super.onBackPressed()
         backPressed()
@@ -127,6 +160,12 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
             layoutManager = LinearLayoutManager(this@CoinsActivity)
             adapter = coinsAdapter
         }
+
+        searchView.setOnQueryTextListener(this@CoinsActivity)
+    }
+
+    private fun getSearchCoin(newText: String) {
+        Log.d("TAG", newText)
     }
 
     private fun showBottomSheet(fragment: Fragment) {
