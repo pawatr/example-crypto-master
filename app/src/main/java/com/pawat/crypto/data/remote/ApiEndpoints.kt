@@ -12,8 +12,9 @@ interface ApiEndpoints {
                  @Query("offset") offset: Int): Call<CoinListResponse>
 
     @GET("/v2/coins")
-    @FormUrlEncoded
-    fun searchCoin(@Query("search") search: String) : Call<CoinListResponse>
+    fun searchCoins(@Query("search") search: String,
+                    @Query("limit") limit: Int,
+                    @Query("offset") offset: Int) : Call<CoinListResponse>
 
     @GET("/v2/coin/{coin_uuid}")
     fun getCoinDetail(@Path("coin_uuid") uuid: String) : Call<CoinResponse>

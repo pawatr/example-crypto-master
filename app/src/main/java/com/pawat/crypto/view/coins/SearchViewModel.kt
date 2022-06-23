@@ -16,13 +16,12 @@ import com.pawat.crypto.data.repository.CoinRepository
 import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
-class CoinsViewModel( private val context: Context, private val repository: CoinRepository): ViewModel() {
-
+class SearchViewModel(private val context: Context, private val repository: CoinRepository): ViewModel() {
     private val _coins = MutableLiveData<Result<List<Coin>, Throwable>>()
 
-    fun getCoins(limit: Int, offset: Int) : LiveData<Result<List<Coin>, Throwable>> {
+    fun searchCoins(search: String, limit: Int, offset: Int) : LiveData<Result<List<Coin>, Throwable>> {
         viewModelScope.launch {
-            when (val result = repository.getCoins(limit, offset)) {
+            when (val result = repository.searchCoins(search, limit, offset)) {
                 is Ok -> {
                     val coinList = result.value.data.coins.map { it.toCoin(context) }
                     _coins.postValue(Ok(coinList))

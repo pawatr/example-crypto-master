@@ -20,13 +20,16 @@ import com.pawat.crypto.view.coin.CoinDetailBottomSheet
 import com.pawat.crypto.view.coin.CoinDetailViewModel
 import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
 import kotlinx.android.synthetic.main.activity_coins.*
+import kotlinx.coroutines.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
+@OptIn(DelicateCoroutinesApi::class)
 class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener {
 
     private val coinsViewModel: CoinsViewModel by viewModel()
     private val coinDetailViewModel: CoinDetailViewModel by viewModel()
+    private val searchViewModel: SearchViewModel by viewModel()
     private val coinsAdapter: CoinsAdapter by lazy { CoinsAdapter() }
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
@@ -47,21 +50,25 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
     }
 
     private fun loadData(isFreshData: Boolean = false) {
-        coinsViewModel.getCoins(10, 0).observe(this) {
-            when (it) {
-                is Ok -> {
-                    if (isFreshData){
-                        coins.clear()
+        GlobalScope.launch(Dispatchers.Main) {
+            searchView.clearFocus()
+            showLoading()
+            coinsViewModel.getCoins(10, 0).observe(this@CoinsActivity) {
+                when (it) {
+                    is Ok -> {
+                        if (isFreshData){
+                            coins.clear()
+                        }
+                        coins.addAll(it.value)
+                        updateViewSuccess()
                     }
-                    coins.addAll(it.value)
-                    updateViewSuccess()
-                }
-                is Err -> {
-                    Log.d(TAG, it.error.message ?: "An unexpected error")
-                    updateViewError()
-                }
-                is Loading -> {
-                    loading.visibility = View.VISIBLE
+                    is Err -> {
+                        Log.d(TAG, it.error.message ?: "An unexpected error")
+                        updateViewError()
+                    }
+                    is Loading -> {
+                        loading.visibility = View.VISIBLE
+                    }
                 }
             }
         }
@@ -98,6 +105,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         }
     }
 
+    //region {@link SearchViewListener}
     override fun onQueryTextSubmit(query: String?): Boolean {
         query?.let {
             if (query.trim().isEmpty()){
@@ -116,8 +124,9 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         timer.schedule(object : TimerTask() {
             override fun run() {
                 newText?.let {
-                    if (newText.trim().isEmpty()){
+                    if (newText.isEmpty()){
                         hideKeyboard()
+                        loadData(true)
                     } else {
                         getSearchCoin(newText)
                     }
@@ -126,6 +135,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         }, sleep)
         return false
     }
+    //endregion
 
     override fun onBackPressed() {
         super.onBackPressed()
@@ -164,8 +174,32 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         searchView.setOnQueryTextListener(this@CoinsActivity)
     }
 
-    private fun getSearchCoin(newText: String) {
-        Log.d("TAG", newText)
+    private fun getSearchCoin(search: String) {
+        GlobalScope.launch(Dispatchers.Main){
+            showLoading()
+            searchViewModel.searchCoins(search, 10, 0).observe(this@CoinsActivity){
+                when (it) {
+                    is Ok -> {
+                        coinsAdapter.coins = it.value
+                        coinRecycler.visibility = View.VISIBLE
+                        loading.visibility = View.GONE
+                    }
+                    is Err -> {
+                        Log.d(TAG, it.error.message ?: "An unexpected error")
+                        loading.visibility = View.GONE
+                    }
+                    is Loading -> {
+                        Log.d(TAG, "loading")
+                        loading.visibility = View.VISIBLE
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showLoading() {
+        coinRecycler.visibility = View.GONE
+        loading.visibility = View.VISIBLE
     }
 
     private fun showBottomSheet(fragment: Fragment) {

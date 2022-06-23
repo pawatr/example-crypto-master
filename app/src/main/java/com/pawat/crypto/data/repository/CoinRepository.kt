@@ -24,4 +24,11 @@ class CoinRepository(private val apiEndpoints: ApiEndpoints) {
         }
         return responseParser(response)
     }
+
+    suspend fun searchCoins(search: String, limit: Int, offset: Int): Result<CoinListResponse, Exception>{
+        val response = withContext(Dispatchers.IO) {
+            apiEndpoints.searchCoins(search, limit, offset).execute()
+        }
+        return responseParser(response)
+    }
 }
