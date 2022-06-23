@@ -23,6 +23,7 @@ import com.pawat.crypto.extension.hideKeyboard
 import com.pawat.crypto.view.coin.CoinDetailBottomSheet
 import com.pawat.crypto.view.coin.CoinDetailViewModel
 import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
+import com.pawat.crypto.view.coins.listener.TopCoinsAdapterListener
 import kotlinx.android.synthetic.main.activity_coins.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -32,12 +33,15 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
 
 @OptIn(DelicateCoroutinesApi::class)
-class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener {
+class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener,
+    TopCoinsAdapterListener {
 
+    private val topCoinsViewModel: TopCoinsViewModel by viewModel()
     private val coinsViewModel: CoinsViewModel by viewModel()
     private val coinDetailViewModel: CoinDetailViewModel by viewModel()
     private val searchViewModel: SearchViewModel by viewModel()
     private val coinsAdapter: CoinsAdapter by lazy { CoinsAdapter() }
+    private val topCoinsAdapter: TopCoinsAdapter by lazy { TopCoinsAdapter() }
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
 
@@ -45,9 +49,11 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         const val TAG = "CoinsActivity"
         const val TAG_BOTTOM_SHEET_FRAGMENT = "CoinDetailBottomSheet"
         const val LOAD_ITEM_SIZE = 10
+        const val LOAD_TOP_COIN_ITEM_SIZE = 3
     }
 
     private var coins: ArrayList<Coin> = arrayListOf()
+    private var topCoins: ArrayList<Coin> = arrayListOf()
     private var timer: Timer = Timer()
     private var isSearch = false
     private var offset = 0
@@ -60,30 +66,46 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         observeData()
         showLoading()
         loadData()
-//        val ha = Handler(Looper.getMainLooper())
-//        ha.postDelayed(object : Runnable {
-//            override fun run() {
-//                loadData()
-//                ha.postDelayed(this, 10000)
-//            }
-//        }, 10000)
+        val ha = Handler(Looper.getMainLooper())
+        ha.postDelayed(object : Runnable {
+            override fun run() {
+                loadData()
+                ha.postDelayed(this, 10000)
+            }
+        }, 10000)
     }
 
-    private fun loadData(){
+    private fun loadData() {
         loading.visibility = View.VISIBLE
-        coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
+        topCoinsViewModel.getCoins(LOAD_TOP_COIN_ITEM_SIZE, 0)
+        coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset + LOAD_TOP_COIN_ITEM_SIZE)
     }
 
     private fun observeData() {
-        searchViewModel.coins.observe(this@CoinsActivity) {
+        topCoinsViewModel.coins.observe(this) {
             when (it) {
                 is Ok -> {
-                    if (it.value.isEmpty() && coins.isEmpty()){
+                    topCoins.clear()
+                    topCoins.addAll(it.value)
+                    updateViewTopCoin()
+                }
+                is Err -> {
+                    Log.d(TAG, it.error.message ?: "An unexpected error")
+                }
+                is Loading -> {
+                    Log.d(TAG, "loading")
+                }
+            }
+        }
+        searchViewModel.coins.observe(this) {
+            when (it) {
+                is Ok -> {
+                    if (it.value.isEmpty() && coins.isEmpty()) {
                         loading.visibility = View.GONE
                         layoutNotFound.visibility = View.VISIBLE
                     } else {
                         coins.addAll(it.value)
-                        updateViewSuccess()
+                        updateView()
                     }
                     this@CoinsActivity.hideKeyboard()
                 }
@@ -101,7 +123,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
             when (it) {
                 is Ok -> {
                     coins.addAll(it.value)
-                    updateViewSuccess()
+                    updateView()
                 }
                 is Err -> {
                     Log.d(TAG, it.error.message ?: "An unexpected error")
@@ -134,7 +156,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         layoutNotFound.visibility = View.GONE
     }
 
-    private fun updateViewSuccess() {
+    private fun updateView() {
         coinRecycler.visibility = View.VISIBLE
         loading.visibility = View.GONE
         errorLayout.visibility = View.GONE
@@ -143,16 +165,29 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         var inviteIndex = 5
         var i = 1
         while (i <= coins.size) {
-            if (i == inviteIndex){
+            if (i == inviteIndex) {
                 items.add(getString(R.string.invite_friend))
                 inviteIndex *= 2
             } else {
-                items.add(coins[i-1])
+                items.add(coins[i - 1])
             }
             ++i
         }
         coinsAdapter.items = items
     }
+
+    private fun updateViewTopCoin() {
+        layoutTopCoins.visibility = View.VISIBLE
+        topCoinsRecycler.visibility = View.VISIBLE
+        topCoinsCountTv.text = topCoins.size.toString()
+        topCoinsAdapter.topCoins = topCoins
+    }
+
+    //region {@link CoinsAdapterListener}
+    override fun onTopCoinClickListener(coin: Coin) {
+        coinDetailViewModel.getCoinDetail(coin.uuid)
+    }
+    //endregion
 
     //region {@link CoinsAdapterListener}
     override fun onCoinClickListener(coin: Coin) {
@@ -162,7 +197,9 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
     override fun onScrollToBottomListener() {
         loading.visibility = View.VISIBLE
         offset += LOAD_ITEM_SIZE
-        if (isSearch){
+        if (isSearch) {
+            layoutTopCoins.visibility = View.GONE
+            topCoinsRecycler.visibility = View.GONE
             searchViewModel.searchCoins(search, LOAD_ITEM_SIZE, offset)
         } else {
             coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
@@ -192,14 +229,19 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         timer.schedule(object : TimerTask() {
             override fun run() {
                 newText?.let {
-                    val limit = if (coins.isEmpty()){ LOAD_ITEM_SIZE } else { coins.size }
+                    val limit = if (coins.isEmpty()) {
+                        LOAD_ITEM_SIZE
+                    } else {
+                        coins.size
+                    }
                     if (newText.isEmpty()) {
                         hideKeyboard()
                         search = ""
                         isSearch = false
                         coins.clear()
                         offset = 0
-                        coinsViewModel.getCoins(limit, offset)
+                        topCoinsViewModel.getCoins(LOAD_TOP_COIN_ITEM_SIZE, offset)
+                        coinsViewModel.getCoins(limit, offset + LOAD_TOP_COIN_ITEM_SIZE)
                     } else {
                         isSearch = true
                         coins.clear()
@@ -240,7 +282,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
             val limit = coins.size
             coins.clear()
             offset = 0
-            if (isSearch){
+            if (isSearch) {
                 searchViewModel.searchCoins(search, limit, offset)
             } else {
                 coinsViewModel.getCoins(limit, offset)
@@ -248,6 +290,12 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
             pullToRefresh.isRefreshing = false
         }
         searchView.setOnQueryTextListener(this@CoinsActivity)
+        topCoinsAdapter.setListener(this)
+        topCoinsRecycler?.apply {
+            layoutManager =
+                LinearLayoutManager(this@CoinsActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = topCoinsAdapter
+        }
         coinsAdapter.setListener(this)
         coinRecycler?.apply {
             layoutManager = LinearLayoutManager(this@CoinsActivity)
@@ -261,7 +309,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         val orientation = newConfig.orientation
-        if (orientation == Configuration.ORIENTATION_PORTRAIT){
+        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
             titleTv?.apply {
                 gravity = Gravity.START
             }
@@ -275,6 +323,9 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
             coinRecycler?.apply {
                 layoutManager = GridLayoutManager(this@CoinsActivity, 3)
             }
+            layoutTopCoins?.apply {
+                gravity = Gravity.CENTER
+            }
         }
     }
 
@@ -282,6 +333,8 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         this.search = search
         GlobalScope.launch(Dispatchers.Main) {
             showLoading()
+            layoutTopCoins.visibility = View.GONE
+            topCoinsRecycler.visibility = View.GONE
             searchViewModel.searchCoins(search, LOAD_ITEM_SIZE, coins.size)
         }
     }

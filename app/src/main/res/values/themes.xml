@@ -27,6 +27,9 @@
     <style name="buttonPrimary">
         <item name="android:textColor">@color/button_primary</item>
     </style>
+    <style name="textTopCoins">
+        <item name="android:textColor">@color/top_coins</item>
+    </style>
     <style name="bottomSheetBg" parent="Widget.MaterialComponents.CardView">
         <item name="cardBackgroundColor">@color/bg_bottom_sheet</item>
     </style>

@@ -11,4 +11,6 @@
     <string name="sorry">Sorry</string>
     <string name="not_match">No result match this keyword</string>
     <string name="invite_friend"><![CDATA[<p>You can earn $10  when you invite a friend to buy crypto. <font color="#38A0FF">Invite your friend</font></p>]]></string>
+    <string name="title_top_coins">Top</string>
+    <string name="title_top_coins_end">rank crypto</string>
 </resources>
