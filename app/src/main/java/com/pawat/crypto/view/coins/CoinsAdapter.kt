@@ -30,6 +30,9 @@ class CoinsAdapter: RecyclerView.Adapter<CoinsAdapter.CoinsViewHolder>() {
     }
 
     override fun onBindViewHolder(holder: CoinsViewHolder, position: Int) {
+        if (position == coins.size - 1){
+            listener?.onScrollToBottomListener()
+        }
         holder.bindView(coins[position])
     }
 

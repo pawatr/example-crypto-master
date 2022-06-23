@@ -7,11 +7,11 @@ import com.pawat.crypto.data.model.Coin
 
 data class CoinListResponse(
     val data: DataResponse,
-    val status: String
+    val status: String?
 )
 data class DataResponse(
     val coins: List<CoinItemResponse>,
-    val stats: StatsResponse
+    val stats: StatsResponse?
 )
 
 data class StatsResponse(

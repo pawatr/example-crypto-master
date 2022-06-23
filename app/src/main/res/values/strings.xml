@@ -8,4 +8,6 @@
     <string name="error">Could not load data</string>
     <string name="try_again">Try again</string>
     <string name="hint_search">Search</string>
+    <string name="sorry">Sorry</string>
+    <string name="not_match">No result match this keyword</string>
 </resources>

@@ -2,6 +2,7 @@ package com.pawat.crypto.view.coins
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -19,8 +20,9 @@ import kotlinx.coroutines.launch
 class CoinsViewModel( private val context: Context, private val repository: CoinRepository): ViewModel() {
 
     private val _coins = MutableLiveData<Result<List<Coin>, Throwable>>()
+    val coins: LiveData<Result<List<Coin>, Throwable>> get() = _coins
 
-    fun getCoins(limit: Int, offset: Int) : LiveData<Result<List<Coin>, Throwable>> {
+    fun getCoins(limit: Int, offset: Int) {
         viewModelScope.launch {
             when (val result = repository.getCoins(limit, offset)) {
                 is Ok -> {
@@ -34,6 +36,6 @@ class CoinsViewModel( private val context: Context, private val repository: Coin
                     _coins.postValue(Loading)
                 }
             }
-        }.apply { return _coins }
+        }
     }
 }

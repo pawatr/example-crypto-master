@@ -16,8 +16,9 @@ import kotlinx.coroutines.launch
 class CoinDetailViewModel(private val repository: CoinRepository): ViewModel() {
 
     private val _coin = MutableLiveData<Result<CoinDetail, Throwable>>()
+    val coin: LiveData<Result<CoinDetail, Throwable>> get() = _coin
 
-    fun getCoinDetail(uuid: String) : LiveData<Result<CoinDetail, Throwable>> {
+    fun getCoinDetail(uuid: String) {
         viewModelScope.launch {
             when (val result = repository.getCoinByUUID(uuid = uuid)) {
                 is Ok -> {
@@ -31,6 +32,6 @@ class CoinDetailViewModel(private val repository: CoinRepository): ViewModel() {
                     _coin.postValue(Loading)
                 }
             }
-        }.apply { return _coin }
+        }
     }
 }

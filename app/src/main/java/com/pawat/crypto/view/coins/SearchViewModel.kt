@@ -17,9 +17,12 @@ import kotlinx.coroutines.launch
 
 @SuppressLint("StaticFieldLeak")
 class SearchViewModel(private val context: Context, private val repository: CoinRepository): ViewModel() {
-    private val _coins = MutableLiveData<Result<List<Coin>, Throwable>>()
 
-    fun searchCoins(search: String, limit: Int, offset: Int) : LiveData<Result<List<Coin>, Throwable>> {
+    private val _coins = MutableLiveData<Result<List<Coin>, Throwable>>()
+    val coins: LiveData<Result<List<Coin>, Throwable>>
+        get() = _coins
+
+    fun searchCoins(search: String, limit: Int, offset: Int) {
         viewModelScope.launch {
             when (val result = repository.searchCoins(search, limit, offset)) {
                 is Ok -> {
@@ -33,6 +36,6 @@ class SearchViewModel(private val context: Context, private val repository: Coin
                     _coins.postValue(Loading)
                 }
             }
-        }.apply { return _coins }
+        }
     }
 }

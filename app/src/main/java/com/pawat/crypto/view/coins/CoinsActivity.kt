@@ -20,9 +20,14 @@ import com.pawat.crypto.view.coin.CoinDetailBottomSheet
 import com.pawat.crypto.view.coin.CoinDetailViewModel
 import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
 import kotlinx.android.synthetic.main.activity_coins.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
+import kotlin.collections.ArrayList
+
 
 @OptIn(DelicateCoroutinesApi::class)
 class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener {
@@ -34,63 +39,65 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
 
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
 
-    companion object{
+    companion object {
         const val TAG = "CoinsActivity"
         const val TAG_BOTTOM_SHEET_FRAGMENT = "CoinDetailBottomSheet"
+        const val LOAD_ITEM_SIZE = 10
     }
 
     private var coins: ArrayList<Coin> = arrayListOf()
     private var timer: Timer = Timer()
+    private var isSearch = false
+    private var offset = 0
+    private var search = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coins)
         setupView()
-        loadData()
+        observeData()
+        showLoading()
+        coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
     }
 
-    private fun loadData(isFreshData: Boolean = false) {
-        GlobalScope.launch(Dispatchers.Main) {
-            searchView.clearFocus()
-            showLoading()
-            coinsViewModel.getCoins(10, 0).observe(this@CoinsActivity) {
-                when (it) {
-                    is Ok -> {
-                        if (isFreshData){
-                            coins.clear()
-                        }
+    private fun observeData() {
+        searchViewModel.coins.observe(this@CoinsActivity) {
+            when (it) {
+                is Ok -> {
+                    if (it.value.isEmpty() && coins.isEmpty()){
+                        loading.visibility = View.GONE
+                        layoutNotFound.visibility = View.VISIBLE
+                    } else {
                         coins.addAll(it.value)
                         updateViewSuccess()
                     }
-                    is Err -> {
-                        Log.d(TAG, it.error.message ?: "An unexpected error")
-                        updateViewError()
-                    }
-                    is Loading -> {
-                        loading.visibility = View.VISIBLE
-                    }
+                }
+                is Err -> {
+                    Log.d(TAG, it.error.message ?: "An unexpected error")
+                    updateViewError()
+                }
+                is Loading -> {
+                    Log.d(TAG, "loading")
+                    loading.visibility = View.VISIBLE
                 }
             }
         }
-    }
-
-    private fun updateViewError() {
-        coinRecycler.visibility = if (coins.isEmpty()) View.GONE else View.VISIBLE
-        loading.visibility = View.GONE
-        errorTitle.visibility = View.VISIBLE
-        error.visibility = View.VISIBLE
-    }
-
-    private fun updateViewSuccess() {
-        coinRecycler.visibility = View.VISIBLE
-        loading.visibility = View.GONE
-        errorTitle.visibility = View.GONE
-        error.visibility = View.GONE
-        coinsAdapter.coins = coins
-    }
-
-    override fun onCoinClickListener(coin: Coin) {
-        coinDetailViewModel.getCoinDetail(coin.uuid).observe(this) {
+        coinsViewModel.coins.observe(this@CoinsActivity) {
+            when (it) {
+                is Ok -> {
+                    coins.addAll(it.value)
+                    updateViewSuccess()
+                }
+                is Err -> {
+                    Log.d(TAG, it.error.message ?: "An unexpected error")
+                    updateViewError()
+                }
+                is Loading -> {
+                    loading.visibility = View.VISIBLE
+                }
+            }
+        }
+        coinDetailViewModel.coin.observe(this) {
             when (it) {
                 is Ok -> {
                     showBottomSheet(CoinDetailBottomSheet(it.value))
@@ -105,12 +112,46 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         }
     }
 
+    private fun updateViewError() {
+        coinRecycler.visibility = if (coins.isEmpty()) View.GONE else View.VISIBLE
+        loading.visibility = View.GONE
+        errorLayout.visibility = View.VISIBLE
+        layoutNotFound.visibility = View.GONE
+    }
+
+    private fun updateViewSuccess() {
+        coinRecycler.visibility = View.VISIBLE
+        loading.visibility = View.GONE
+        errorLayout.visibility = View.GONE
+        layoutNotFound.visibility = View.GONE
+        coinsAdapter.coins = coins
+    }
+
+    //region {@link CoinsAdapterListener}
+    override fun onCoinClickListener(coin: Coin) {
+        coinDetailViewModel.getCoinDetail(coin.uuid)
+    }
+
+    override fun onScrollToBottomListener() {
+        loading.visibility = View.VISIBLE
+        offset += LOAD_ITEM_SIZE
+        if (isSearch){
+            searchViewModel.searchCoins(search, LOAD_ITEM_SIZE, offset)
+        } else {
+            coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
+        }
+    }
+    //endregion
+
     //region {@link SearchViewListener}
     override fun onQueryTextSubmit(query: String?): Boolean {
         query?.let {
-            if (query.trim().isEmpty()){
+            if (query.isEmpty()) {
                 hideKeyboard()
             } else {
+                isSearch = true
+                coins.clear()
+                offset = 0
                 getSearchCoin(query)
             }
         }
@@ -124,10 +165,18 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         timer.schedule(object : TimerTask() {
             override fun run() {
                 newText?.let {
-                    if (newText.isEmpty()){
+                    val limit = if (coins.isEmpty()){ LOAD_ITEM_SIZE } else { coins.size }
+                    if (newText.isEmpty()) {
                         hideKeyboard()
-                        loadData(true)
+                        search = ""
+                        isSearch = false
+                        coins.clear()
+                        offset = 0
+                        coinsViewModel.getCoins(limit, offset)
                     } else {
+                        isSearch = true
+                        coins.clear()
+                        offset = 0
                         getSearchCoin(newText)
                     }
                 }
@@ -150,7 +199,8 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
 
             override fun onStateChanged(bottomSheet: View, newState: Int) {
                 if (newState == BottomSheetBehavior.STATE_COLLAPSED) {
-                    val bottomSheetFragment = supportFragmentManager.findFragmentByTag(TAG_BOTTOM_SHEET_FRAGMENT)
+                    val bottomSheetFragment =
+                        supportFragmentManager.findFragmentByTag(TAG_BOTTOM_SHEET_FRAGMENT)
                     if (bottomSheetFragment != null) {
                         supportFragmentManager.beginTransaction()
                             .remove(bottomSheetFragment)
@@ -159,41 +209,33 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
                 }
             }
         })
-
         pullToRefresh.setOnRefreshListener {
-            loadData(true)
+            val limit = coins.size
+            coins.clear()
+            offset = 0
+            if (isSearch){
+                searchViewModel.searchCoins(search, limit, offset)
+            } else {
+                coinsViewModel.getCoins(limit, offset)
+            }
             pullToRefresh.isRefreshing = false
         }
-
+        searchView.setOnQueryTextListener(this@CoinsActivity)
         coinsAdapter.setListener(this)
         coinRecycler?.apply {
             layoutManager = LinearLayoutManager(this@CoinsActivity)
             adapter = coinsAdapter
         }
-
-        searchView.setOnQueryTextListener(this@CoinsActivity)
+        error.setOnClickListener {
+            coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
+        }
     }
 
     private fun getSearchCoin(search: String) {
-        GlobalScope.launch(Dispatchers.Main){
+        this.search = search
+        GlobalScope.launch(Dispatchers.Main) {
             showLoading()
-            searchViewModel.searchCoins(search, 10, 0).observe(this@CoinsActivity){
-                when (it) {
-                    is Ok -> {
-                        coinsAdapter.coins = it.value
-                        coinRecycler.visibility = View.VISIBLE
-                        loading.visibility = View.GONE
-                    }
-                    is Err -> {
-                        Log.d(TAG, it.error.message ?: "An unexpected error")
-                        loading.visibility = View.GONE
-                    }
-                    is Loading -> {
-                        Log.d(TAG, "loading")
-                        loading.visibility = View.VISIBLE
-                    }
-                }
-            }
+            searchViewModel.searchCoins(search, LOAD_ITEM_SIZE, coins.size)
         }
     }
 
