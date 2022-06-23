@@ -10,7 +10,27 @@
         <item name="colorSecondaryVariant">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:statusBarColor" >?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="textHeader">
+        <item name="android:textColor">@color/text_header_dark</item>
+    </style>
+    <style name="textPrimary">
+        <item name="android:textColor">@color/text_primary_dark</item>
+    </style>
+    <style name="textSecondary">
+        <item name="android:textColor">@color/text_secondary_dark</item>
+    </style>
+    <style name="buttonPrimary">
+        <item name="android:textColor">@color/button_primary_dark</item>
+    </style>
+    <style name="bottomSheetBg" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@color/bg_bottom_sheet_dark</item>
+    </style>
+    <style name="searchBg" parent="Widget.AppCompat.SearchView">
+        <item name="android:background">@drawable/bg_search_dark</item>
+        <item name="android:textColor">@color/text_primary_dark</item>
     </style>
 </resources>

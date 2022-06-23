@@ -83,6 +83,7 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
                         coins.addAll(it.value)
                         updateViewSuccess()
                     }
+                    this@CoinsActivity.hideKeyboard()
                 }
                 is Err -> {
                     Log.d(TAG, it.error.message ?: "An unexpected error")

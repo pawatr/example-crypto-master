@@ -18,13 +18,10 @@
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/searchView"
+                style="@style/searchBg"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
-                android:background="@drawable/bg_grey_conner"
-                android:colorAccent="@color/grey"
-                android:colorControlNormal="@color/grey"
-                android:textColorSecondary="@color/grey"
                 app:iconifiedByDefault="false"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -33,12 +30,12 @@
 
             <TextView
                 android:id="@+id/coinsTitle"
+                style="@style/textHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/title_coins"
-                android:textColor="@color/black"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/searchView" />
@@ -79,12 +76,12 @@
 
                 <TextView
                     android:id="@+id/errorTitle"
+                    style="@style/textPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/error"
                     android:textAlignment="center"
-                    android:textColor="@color/text_primary"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@+id/error"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -93,12 +90,12 @@
 
                 <TextView
                     android:id="@+id/error"
+                    style="@style/buttonPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:text="@string/try_again"
                     android:textAlignment="center"
-                    android:textColor="@color/button_primary"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
@@ -118,12 +115,12 @@
 
                 <TextView
                     android:id="@+id/notFoundTitle"
+                    style="@style/textPrimary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/sorry"
                     android:textAlignment="center"
-                    android:textColor="@color/text_primary"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toTopOf="@+id/notFoundTv"
@@ -133,12 +130,12 @@
 
                 <TextView
                     android:id="@+id/notFoundTv"
+                    style="@style/textSecondary"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:text="@string/not_match"
                     android:textAlignment="center"
-                    android:textColor="@color/text_secondary"
                     android:textSize="16sp"
                     android:textStyle="bold"
                     app:layout_constraintBottom_toBottomOf="parent"

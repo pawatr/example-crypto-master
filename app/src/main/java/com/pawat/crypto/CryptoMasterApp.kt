@@ -9,6 +9,7 @@ import org.koin.core.module.Module
 
 
 class CryptoMasterApp : MultiDexApplication() {
+
     override fun onCreate() {
         super.onCreate()
         setupKoin()
