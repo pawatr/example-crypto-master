@@ -1,5 +1,6 @@
 package com.pawat.crypto.view.coins
 
+import android.content.res.Configuration
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.pawat.crypto.R
@@ -58,13 +60,13 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         observeData()
         showLoading()
         loadData()
-        val ha = Handler(Looper.getMainLooper())
-        ha.postDelayed(object : Runnable {
-            override fun run() {
-                loadData()
-                ha.postDelayed(this, 10000)
-            }
-        }, 10000)
+//        val ha = Handler(Looper.getMainLooper())
+//        ha.postDelayed(object : Runnable {
+//            override fun run() {
+//                loadData()
+//                ha.postDelayed(this, 10000)
+//            }
+//        }, 10000)
     }
 
     private fun loadData(){
@@ -253,6 +255,26 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         }
         error.setOnClickListener {
             coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        val orientation = newConfig.orientation
+        if (orientation == Configuration.ORIENTATION_PORTRAIT){
+            titleTv?.apply {
+                gravity = Gravity.START
+            }
+            coinRecycler?.apply {
+                layoutManager = LinearLayoutManager(this@CoinsActivity)
+            }
+        } else {
+            titleTv?.apply {
+                gravity = Gravity.CENTER
+            }
+            coinRecycler?.apply {
+                layoutManager = GridLayoutManager(this@CoinsActivity, 3)
+            }
         }
     }
 

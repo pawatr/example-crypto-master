@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginTop="12dp"
     android:layout_marginStart="8dp"
+    android:layout_marginTop="12dp"
     android:layout_marginEnd="8dp"
     app:cardCornerRadius="8dp">
 
@@ -33,6 +33,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/coinPriceItemTv"
             app:layout_constraintStart_toEndOf="@+id/coinItemImg"
@@ -46,6 +49,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginTop="6dp"
+            android:textSize="14sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/coinChangeItemTv"
             app:layout_constraintStart_toEndOf="@+id/coinItemImg"
@@ -55,26 +59,28 @@
         <TextView
             android:id="@+id/coinPriceItemTv"
             style="@style/textPrimary"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:textAlignment="textEnd"
+            android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@+id/coinNameItemTv"
             app:layout_constraintTop_toTopOf="@+id/coinItemImg"
+            app:layout_constraintBottom_toBottomOf="@+id/coinNameItemTv"
             tools:text="$56,671.41180" />
 
         <ImageView
             android:id="@+id/arrowChange"
-            app:layout_constraintTop_toTopOf="@+id/coinChangeItemTv"
-            app:layout_constraintEnd_toStartOf="@+id/coinChangeItemTv"
-            app:layout_constraintBottom_toBottomOf="@+id/coinChangeItemTv"
-            android:layout_marginEnd="2dp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:src="@drawable/ic_arrow_up"
-            tools:ignore="ContentDescription" />
+            android:layout_marginEnd="2dp"
+            app:layout_constraintBottom_toBottomOf="@+id/coinChangeItemTv"
+            app:layout_constraintEnd_toStartOf="@+id/coinChangeItemTv"
+            app:layout_constraintTop_toTopOf="@+id/coinChangeItemTv"
+            tools:ignore="ContentDescription"
+            tools:src="@drawable/ic_arrow_up" />
 
         <TextView
             android:id="@+id/coinChangeItemTv"

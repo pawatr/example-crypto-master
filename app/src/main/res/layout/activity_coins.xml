@@ -29,14 +29,15 @@
                 app:queryHint="@string/hint_search" />
 
             <TextView
-                android:id="@+id/coinsTitle"
+                android:id="@+id/titleTv"
                 style="@style/textHeader"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
                 android:text="@string/title_coins"
                 android:textStyle="bold"
+                app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/searchView" />
 
@@ -51,7 +52,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/loading"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/coinsTitle"
+                app:layout_constraintTop_toBottomOf="@+id/titleTv"
                 tools:listitem="@layout/coin_list_item" />
 
             <ProgressBar
