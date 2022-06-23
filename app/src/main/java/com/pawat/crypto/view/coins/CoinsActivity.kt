@@ -1,6 +1,8 @@
 package com.pawat.crypto.view.coins
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import android.view.Gravity
 import android.view.View
@@ -26,8 +28,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.*
-import kotlin.collections.ArrayList
-
 
 @OptIn(DelicateCoroutinesApi::class)
 class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQueryTextListener {
@@ -57,6 +57,18 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener, SearchView.OnQu
         setupView()
         observeData()
         showLoading()
+        loadData()
+        val ha = Handler(Looper.getMainLooper())
+        ha.postDelayed(object : Runnable {
+            override fun run() {
+                loadData()
+                ha.postDelayed(this, 10000)
+            }
+        }, 10000)
+    }
+
+    private fun loadData(){
+        loading.visibility = View.VISIBLE
         coinsViewModel.getCoins(LOAD_ITEM_SIZE, offset)
     }
 
