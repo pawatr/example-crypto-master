@@ -39,10 +39,16 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_coins)
         setupView()
+        loadData()
+    }
 
+    private fun loadData(isFreshData: Boolean = false) {
         coinsViewModel.getCoins(10, 0).observe(this) {
             when (it) {
                 is Ok -> {
+                    if (isFreshData){
+                        coins.clear()
+                    }
                     coins.addAll(it.value)
                     updateViewSuccess()
                 }
@@ -110,6 +116,11 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
                 }
             }
         })
+
+        pullToRefresh.setOnRefreshListener {
+            loadData(true)
+            pullToRefresh.isRefreshing = false
+        }
 
         coinsAdapter.setListener(this)
         coinRecycler?.apply {
