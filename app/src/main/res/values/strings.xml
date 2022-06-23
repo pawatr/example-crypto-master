@@ -5,4 +5,6 @@
     <string name="title_market_cap">MARKET CAP</string>
     <string name="go_to_website">GO TO WEBSITE</string>
     <string name="title_coins">Buy, sell and hold crypto</string>
+    <string name="error">Could not load data</string>
+    <string name="try_again">Try again</string>
 </resources>

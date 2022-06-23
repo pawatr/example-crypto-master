@@ -1,9 +1,10 @@
 package com.pawat.crypto.view.coins
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.util.Log
 import android.view.Gravity
 import android.view.View
+import androidx.appcompat.app.AppCompatActivity
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -17,7 +18,6 @@ import com.pawat.crypto.view.coin.CoinDetailBottomSheet
 import com.pawat.crypto.view.coin.CoinDetailViewModel
 import com.pawat.crypto.view.coins.listener.CoinsAdapterListener
 import kotlinx.android.synthetic.main.activity_coins.*
-import kotlinx.android.synthetic.main.activity_main.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
@@ -29,8 +29,11 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
     private lateinit var bottomSheetBehavior: BottomSheetBehavior<*>
 
     companion object{
+        const val TAG = "CoinsActivity"
         const val TAG_BOTTOM_SHEET_FRAGMENT = "CoinDetailBottomSheet"
     }
+
+    var coins: ArrayList<Coin> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,16 +43,33 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
         coinsViewModel.getCoins(10, 0).observe(this) {
             when (it) {
                 is Ok -> {
-                    coinsAdapter.coins = it.value
+                    coins.addAll(it.value)
+                    updateViewSuccess()
                 }
                 is Err -> {
-                    it.error.message
+                    Log.d(TAG, it.error.message ?: "An unexpected error")
+                    updateViewError()
                 }
                 is Loading -> {
-                    "Loading"
+                    loading.visibility = View.VISIBLE
                 }
             }
         }
+    }
+
+    private fun updateViewError() {
+        coinRecycler.visibility = if (coins.isEmpty()) View.GONE else View.VISIBLE
+        loading.visibility = View.GONE
+        errorTitle.visibility = View.VISIBLE
+        error.visibility = View.VISIBLE
+    }
+
+    private fun updateViewSuccess() {
+        coinRecycler.visibility = View.VISIBLE
+        loading.visibility = View.GONE
+        errorTitle.visibility = View.GONE
+        error.visibility = View.GONE
+        coinsAdapter.coins = coins
     }
 
     override fun onCoinClickListener(coin: Coin) {
@@ -59,10 +79,10 @@ class CoinsActivity : AppCompatActivity(), CoinsAdapterListener {
                     showBottomSheet(CoinDetailBottomSheet(it.value))
                 }
                 is Err -> {
-                    it.error.localizedMessage ?: "An unexpected error"
+                    Log.d(TAG, it.error.message ?: "An unexpected error")
                 }
                 is Loading -> {
-                    "Loading"
+                    Log.d(TAG, "loading")
                 }
             }
         }
